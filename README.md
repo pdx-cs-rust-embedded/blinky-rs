@@ -10,24 +10,12 @@ You can follow the instructions from the embedded micro:bit
 [*Discovery Book*](https://docs.rust-embedded.org/discovery/microbit/index.html)
 to set up your build environment.  Then you can say
 
-    cargo embed --release
+    cargo embed
 
 to flash and run this.
 
-You can also follow the setup instructions in the `README`
-on the `microbit` crate
-[repo](https://github.com/nrf-rs/microbit). You can then say
-
-    cargo run --release
-
-Note that this app requires `--release` to work properly:
-the FFT is just too slow otherwise.
-
-You can turn on debugging via for example
-
-    cargo embed --release --no-default-features --features=defmt-trace,adc-multiread
-
-See the `Cargo.toml` for the full setup.
+Note that this app will not work with `--release`: the delay
+spin loop will be optimized away.
 
 ## License
 

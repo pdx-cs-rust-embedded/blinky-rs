@@ -9,6 +9,7 @@ embedded-hal = "0.2.7"
 
 panic-halt = "0.2.0"
 microbit-v2 = "0.13.0"
+nrf52833-hal = "0.16.0"
 
 [dependencies.cortex-m]
 version = "0.7.7"

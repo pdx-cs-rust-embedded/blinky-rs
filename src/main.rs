@@ -5,9 +5,9 @@ use cortex_m_rt::entry;
 use nrf52833_hal::{prelude::OutputPin, gpio::{p0, Level}, pac};
 use panic_halt as _;
 
-#[inline(never)]
 fn delay() {
-    for _ in 0..200_000 {
+    for _ in 0..2_000_000 {
+        unsafe { core::arch::asm!("nop"); }
     }
 }
 

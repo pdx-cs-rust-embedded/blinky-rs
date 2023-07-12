@@ -4,6 +4,12 @@ Bart Massey 2023
 This Rust app for the BBC micro:bit v2 is a bare-minimum
 blinky light program.
 
+Alternate branches:
+
+* `bare`: Blinky without the `microbit_v2` crate.
+* `offboard`: Blinky for an LED connected to pin 8 on
+  the MB2 edge connector.
+
 ## Build and Run
 
 You can follow the instructions from the embedded micro:bit

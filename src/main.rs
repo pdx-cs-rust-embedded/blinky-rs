@@ -13,6 +13,11 @@ use rtt_target::{rtt_init_print, rprintln};
 use panic_rtt_target as _;                                                    
 
 
+enum State {
+    LedOn,
+    LedOff,
+}
+
 #[entry]
 fn init() -> ! {
     rtt_init_print!();
@@ -21,12 +26,21 @@ fn init() -> ! {
 
     board.display_pins.col1.set_low().unwrap();
 
+    let mut state = State::LedOn;
+
     loop {
-        board.display_pins.row1.set_high().unwrap();
-        rprintln!("high");
-        timer.delay_ms(500u16);
-        board.display_pins.row1.set_low().unwrap();
-        rprintln!("low");
+        state = match state {
+            State::LedOn => {
+                board.display_pins.row1.set_high().unwrap();
+                rprintln!("high");
+                State::LedOff
+            }
+            State::LedOff => {
+                board.display_pins.row1.set_low().unwrap();
+                rprintln!("low");
+                State::LedOn
+            }
+        };
         timer.delay_ms(500u16);
     }
 }

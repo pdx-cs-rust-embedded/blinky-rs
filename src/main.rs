@@ -2,12 +2,10 @@
 #![no_main]
 
 use cortex_m_rt::entry;
+use embedded_hal::{delay::DelayNs, digital::OutputPin};
 use microbit::{
     board::Board,
-    hal::{
-        prelude::*,
-        timer::Timer,
-    },
+    hal::timer::Timer,
 };
 use rtt_target::{rtt_init_print, rprintln};                                   
 use panic_rtt_target as _;                                                    
@@ -41,6 +39,6 @@ fn init() -> ! {
                 State::LedOn
             }
         };
-        timer.delay_ms(500u16);
+        timer.delay_ms(500);
     }
 }

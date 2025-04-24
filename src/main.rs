@@ -3,7 +3,8 @@
 
 use core::sync::atomic::{
     AtomicBool,
-    Ordering::{Acquire, Release},
+    AtomicU32,
+    Ordering::{Acquire, AcqRel, Release},
 };
 
 use cortex_m_rt::entry;
@@ -25,6 +26,7 @@ use critical_section_lock_mut::LockMut;
 static APP_STATE: LockMut<AppState> = LockMut::new();
 
 static BUTTON_STATE: AtomicBool = AtomicBool::new(false);
+static INTERRUPT_COUNT: AtomicU32 = AtomicU32::new(0);
 
 struct AppState {
     gpiote: Gpiote,
@@ -38,6 +40,7 @@ enum State {
 
 #[interrupt]
 fn GPIOTE() {
+    INTERRUPT_COUNT.fetch_add(1, AcqRel);
     APP_STATE.with_lock(|app_state| {
         let button_a_changed = app_state.gpiote.channel0().is_event_triggered();
         if button_a_changed {
@@ -75,6 +78,8 @@ fn init() -> ! {
 
     loop {
         let pressed = BUTTON_STATE.load(Acquire);
+        let interrupts = INTERRUPT_COUNT.load(Acquire);
+        rprintln!("interrupts: {}", interrupts);
         state = match (pressed, state) {
             (true, State::LedOn) => {
                 board.display_pins.row1.set_high().unwrap();

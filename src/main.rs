@@ -3,7 +3,7 @@
 
 use core::arch::asm;
 use cortex_m_rt::entry;
-use nrf52833_hal::{prelude::OutputPin, gpio::{p0, Level}, pac};
+use nrf52833_pac as pac;
 use panic_halt as _;
 
 fn delay() {
@@ -16,18 +16,44 @@ fn delay() {
     }
 }
 
+fn init_pin(p0: &pac::P0, pin: usize) {
+    p0.pin_cnf[pin].write(|w| {
+        w.dir().output();
+        w.pull().disabled();
+        w.drive().s0s1();
+        w.sense().disabled();
+        w
+    });
+}
+
+fn set_high(p0: &pac::P0, pin: usize) {
+    unsafe {
+        p0.outset.write(|w| w.bits(1u32 << pin));
+    }
+}
+
+fn set_low(p0: &pac::P0, pin: usize) {
+    unsafe {
+        p0.outclr.write(|w| w.bits(1u32 << pin));
+    }
+}
+
 #[entry]
 fn init() -> ! {
     let p = pac::Peripherals::take().unwrap();
-    let p0parts = p0::Parts::new(p.P0);
+    let p0 = p.P0;
+    let col1 = 28;
+    let row1 = 21;
 
-    let _col1 = p0parts.p0_28.into_push_pull_output(Level::Low);
-    let mut row1 = p0parts.p0_21.into_push_pull_output(Level::Low);
+    init_pin(&p0, col1);
+    set_low(&p0, col1);
+
+    init_pin(&p0, row1);
 
     loop {
-        row1.set_high().unwrap();
+        set_high(&p0, row1);
         delay();
-        row1.set_low().unwrap();
+        set_low(&p0, row1);
         delay();
     }
 }

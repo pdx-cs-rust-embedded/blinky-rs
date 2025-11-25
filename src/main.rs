@@ -6,46 +6,70 @@ use nrf52833_pac as pac;
 use panic_halt as _;
 
 #[cfg(feature="spin")]
-fn delay() {
-    for _ in 0..4_000_000 {
-        // SAFETY: It's a NOP.
-        // NEED: Need the program to take some time.
-        unsafe {
-            core::arch::asm!("nop");
+mod timer {
+    pub struct Timer;
+
+    impl Timer {
+        pub fn new() -> Self {
+            Self
+        }
+
+        pub fn delay(&self) {
+            for _ in 0..4_000_000 {
+                // SAFETY: It's a NOP.
+                // NEED: Need the program to take some time.
+                unsafe {
+                    core::arch::asm!("nop");
+                }
+            }
         }
     }
 }
 
 #[cfg(not(feature="spin"))]
-fn init_timer(timer0: &pac::TIMER0) {
-    timer0.bitmode.write(|w| {
-        w.bitmode()._32bit()
-    });
-    timer0.prescaler.write(|w| unsafe {
-        w.prescaler().bits(4)
-    });
-    timer0.shorts.write(|w| {
-        w.compare0_clear().enabled().compare0_stop().enabled()
-    });
-}
+mod timer {
+    use super::*;
 
-#[cfg(not(feature="spin"))]
-fn delay_ms(timer0: &pac::TIMER0, ms: u32) {
-    let cycles = 1000 * ms;
-    timer0.cc[0].write(|w| unsafe {
-        w.bits(cycles)
-    });
-    timer0.tasks_clear.write(|w| unsafe { w.bits(1) });
-    timer0.tasks_start.write(|w| unsafe { w.bits(1) });
-    while timer0.events_compare[0].read().bits() == 0 {
-        // SAFETY: It's a NOP.
-        // NEED: Need the program to take some time.
-        unsafe {
-            core::arch::asm!("nop");
+    pub struct Timer(pac::TIMER0);
+
+    impl Timer {
+        pub fn new(timer0: pac::TIMER0) -> Self {
+            timer0.bitmode.write(|w| {
+                w.bitmode()._32bit()
+            });
+            timer0.prescaler.write(|w| unsafe {
+                w.prescaler().bits(4)
+            });
+            timer0.shorts.write(|w| {
+                w.compare0_clear().enabled().compare0_stop().enabled()
+            });
+            Self(timer0)
+        }
+
+        fn delay_ms(&self, ms: u32) {
+            let cycles = 1000 * ms;
+            self.0.cc[0].write(|w| unsafe {
+                w.bits(cycles)
+            });
+            self.0.tasks_clear.write(|w| unsafe { w.bits(1) });
+            self.0.tasks_start.write(|w| unsafe { w.bits(1) });
+            while self.0.events_compare[0].read().bits() == 0 {
+                // SAFETY: It's a NOP.
+                // NEED: Need the program to take some time.
+                unsafe {
+                    core::arch::asm!("nop");
+                }
+            }
+            self.0.events_compare[0].reset();
+        }
+
+        pub fn delay(&self) {
+            self.delay_ms(500);
         }
     }
-    timer0.events_compare[0].reset();
 }
+
+use timer::Timer;
 
 fn init_pin(p0: &pac::P0, pin: usize) {
     p0.pin_cnf[pin].write(|w| {
@@ -73,11 +97,12 @@ fn set_low(p0: &pac::P0, pin: usize) {
 fn init() -> ! {
     let p = pac::Peripherals::take().unwrap();
     let p0 = p.P0;
-    #[cfg(not(feature = "spin"))]
-    let timer0 = p.TIMER0;
+
+    #[cfg(feature = "spin")]
+    let timer = Timer::new();
 
     #[cfg(not(feature = "spin"))]
-    init_timer(&timer0);
+    let timer = Timer::new(p.TIMER0);
 
     let col1 = 28;
     let row1 = 21;
@@ -85,15 +110,10 @@ fn init() -> ! {
     set_low(&p0, col1);
     init_pin(&p0, row1);
 
-    #[cfg(not(feature="spin"))]
-    let wait = || delay_ms(&timer0, 500);
-    #[cfg(feature="spin")]
-    let wait = || delay();
-
     loop {
         set_high(&p0, row1);
-        wait();
+        timer.delay();
         set_low(&p0, row1);
-        wait();
+        timer.delay();
     }
 }

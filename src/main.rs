@@ -2,10 +2,10 @@
 #![no_main]
 
 use cortex_m_rt::entry;
+use embedded_hal::{digital::OutputPin, delay::DelayNs};
 use microbit::{
     board::Board,
     hal::{
-        prelude::*,
         timer::Timer,
     },
 };
@@ -41,6 +41,6 @@ fn init() -> ! {
                 State::LedOn
             }
         };
-        timer.delay_ms(500u16);
+        timer.delay_ms(500);
     }
 }

@@ -1,11 +1,15 @@
 [package]
 name = "blinky-rs"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
-cortex-m = "0.7.7"
 cortex-m-rt = "0.7"
-microbit-v2 = "0.13.0"
+embedded-hal = "1.0.0"
+microbit-v2 = "0.16.0"
 panic-rtt-target = "0.2.0"
-rtt-target = "0.4.0"
+rtt-target = "0.6.2"
+
+[dependencies.cortex-m]
+version = "0.7.7"
+features = ["critical-section-single-core"]

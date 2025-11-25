@@ -2,6 +2,13 @@
 //!
 //! Much of this code is "borrowed" from the `nrf52833-hal`
 //! crate.
+//!
+//! * With no Cargo features, there will be no delay: the LED
+//!   will look half-illuminated.
+//! * With `--features=spin`, an approximate spin wait will
+//!   be used for delay.
+//! * With `--features=timer', a hardware timer will be used
+//!   for delay.
 
 #![no_std]
 #![no_main]
@@ -36,7 +43,8 @@ mod timer {
     }
 }
 
-#[cfg(not(feature="spin"))]
+#[cfg(feature="timer")]
+/// Hardware timer.
 mod timer {
     use super::*;
 
@@ -95,6 +103,7 @@ mod timer {
     }
 }
 
+#[cfg(any(feature = "spin", feature = "timer"))]
 use timer::Timer;
 
 /// Initialize the given GPIO pin.
@@ -130,7 +139,7 @@ fn init() -> ! {
     #[cfg(feature = "spin")]
     let timer = Timer::new();
 
-    #[cfg(not(feature = "spin"))]
+    #[cfg(feature = "timer")]
     let timer = Timer::new(p.TIMER0);
 
     // Pin numbers on MicroBit v2.
@@ -144,8 +153,10 @@ fn init() -> ! {
 
     loop {
         set_high(&p0, row1);
+        #[cfg(any(feature = "spin", feature = "timer"))]
         timer.delay();
         set_low(&p0, row1);
+        #[cfg(any(feature = "spin", feature = "timer"))]
         timer.delay();
     }
 }

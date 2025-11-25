@@ -14,3 +14,4 @@ features = ["inline-asm"]
 
 [features]
 spin = []
+timer = []

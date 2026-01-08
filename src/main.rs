@@ -2,12 +2,18 @@
 #![no_main]
 
 use cortex_m_rt::entry;
-use nrf52833_hal::{prelude::OutputPin, gpio::{p0, Level}, pac};
+use embedded_hal::digital::OutputPin;
+use nrf52833_hal::{
+    gpio::{Level, p0},
+    pac,
+};
 use panic_halt as _;
 
 fn delay() {
     for _ in 0..2_000_000 {
-        unsafe { core::arch::asm!("nop"); }
+        unsafe {
+            core::arch::asm!("nop");
+        }
     }
 }
 

@@ -26,21 +26,21 @@ fn init() -> ! {
 
     board.display_pins.col1.set_low().unwrap();
 
-    let mut state = State::LedOn;
+    let mut state = State::LedOff;
 
     loop {
         state = match state {
-            State::LedOn => {
+            State::LedOff => {
                 board.display_pins.row1.set_high().unwrap();
                 rprintln!("high");
-                State::LedOff
-            }
-            State::LedOff => {
-                board.display_pins.row1.set_low().unwrap();
-                rprintln!("low");
                 State::LedOn
             }
+            State::LedOn => {
+                board.display_pins.row1.set_low().unwrap();
+                rprintln!("low");
+                State::LedOff
+            }
         };
-        timer.delay_ms(500);
+        timer.delay_ms(2000);
     }
 }

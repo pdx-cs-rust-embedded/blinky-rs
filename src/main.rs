@@ -43,6 +43,28 @@ mod timer {
     }
 }
 
+#[cfg(feature="core_spin")]
+/// Timer using pure spin-wait with [core::hints::spin_loop].
+mod timer {
+    pub struct Timer;
+
+    impl Timer {
+        /// Make a dummy timer struct.
+        pub fn new() -> Self {
+            Self
+        }
+
+        /// Delay by spin waiting for approximately 500 ms.
+        /// **Note:** Will spin far longer if not compiled
+        /// optimized.
+        pub fn delay(&self) {
+            for _ in 0..20_000_000 {
+                core::hint::spin_loop();
+            }
+        }
+    }
+}
+
 #[cfg(feature="timer")]
 /// Hardware timer.
 mod timer {
@@ -103,7 +125,7 @@ mod timer {
     }
 }
 
-#[cfg(any(feature = "spin", feature = "timer"))]
+#[cfg(feature = "delay")]
 use timer::Timer;
 
 /// Initialize the given GPIO pin.
@@ -136,7 +158,7 @@ fn init() -> ! {
     let p = pac::Peripherals::take().unwrap();
     let p0 = p.P0;
 
-    #[cfg(feature = "spin")]
+    #[cfg(any(feature = "spin", feature = "core_spin"))]
     let timer = Timer::new();
 
     #[cfg(feature = "timer")]
@@ -153,10 +175,10 @@ fn init() -> ! {
 
     loop {
         set_high(&p0, row1);
-        #[cfg(any(feature = "spin", feature = "timer"))]
+        #[cfg(feature = "delay")]
         timer.delay();
         set_low(&p0, row1);
-        #[cfg(any(feature = "spin", feature = "timer"))]
+        #[cfg(feature = "delay")]
         timer.delay();
     }
 }

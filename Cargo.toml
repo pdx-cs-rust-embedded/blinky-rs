@@ -13,5 +13,7 @@ version = "0.7.7"
 features = ["inline-asm"]
 
 [features]
-spin = []
-timer = []
+delay = []
+spin = ["delay"]
+core_spin = ["delay"]
+timer = ["delay"]

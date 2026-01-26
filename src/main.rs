@@ -41,6 +41,6 @@ fn init() -> ! {
                 State::LedOff
             }
         };
-        timer.delay_ms(2000);
+        timer.delay_ms(500);
     }
 }
